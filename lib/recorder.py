@@ -1,51 +1,71 @@
 import interact
-import shelve
+import ZODB, transaction
+from BTrees.OOBTree import OOBTree
 
 class Recorder:
-    '''
-    A class for managing simple records.
-    The records stored in a flat fashion, that is, one key, one value
-    shelve is used.
-    '''
-    def __init__(self, db_path):
-        self.db_path = db_path
-        self.db = None
+    """ A class for managing simple records.
+    The records stored in a dictionary like manner,
+    that is, one key, one value, ZODB is used.
+    """
 
-    def opendb(self):
-        if not self.db:
-            self.db = shelve.open(self.db_path)
+    contName = 'main'
+
+    def __init__(self, db_path, contName=None):
+        self.db_path    = db_path
+        self.conn       = None
+        if contName:
+            self.contName   = contName
+
+    def opendb(self, contName=None):
+        """ Open the database if not yet,
+        return the required container.
+        """
+        if self.conn is None:
+            self.conn = ZODB.connection(self.db_path)
+        if contName is None:
+            contName = self.contName
+        if contName is None:
+            raise "must specify a container name"
+        return self.getContainer(self.conn.root, contName)
+
+    def getContainer(self, root, contName):
+        """ return a ZODB container, create it if not yet exists
+        """
+        cont = getattr(root, contName, None)
+        if cont is None:
+            cont = OOBTree()
+            setattr(root, contName, cont)
+            transaction.commit()
+        return cont
 
     def closedb(self):
-        if self.db:
-            self.db.close()
-            self.db = None
+        if self.conn:
+            self.conn.close()
+            self.conn = None
 
-    def save(self, key, ent):
-        self.opendb()
-        self.db[key] = ent
-        self.closedb()
+    def persist(self):
+        """ Make the record persistent
+        """
+        transaction.commit()
 
-    def dbinstance(self):
-        '''
-        open the database and return the db instance
-        caller can then do anying about the db
-        '''
-        self.opendb()
-        return self.db
+    def save(self, key, ent, contName=None):
+        cont = self.opendb(contName=contName)
+        cont[key] = ent
+        self.persist()
 
     def add(self, key, ent):
         self.save(key, ent)
 
     def delete(self, key):
-        self.opendb()
-        del self.db[key]
-        self.closedb()
+        cont = self.opendb()
+        del cont[key]
+        self.persist()
 
     def search(self, filter):
         # filter is a function takes two arguments, and returns Boolean
         # subclass must overload the __str__ method
-        self.opendb()
-        entries = ((k, v) for k,v in self.db.items() if filter(k, v))
+        cont = self.opendb()
+        entries = ((k, v) for k,v in cont.items() if filter(k, v))
         return entries
 
     def list(self):
@@ -62,25 +82,3 @@ class Recorder:
         i, junk = interact.printAndPick([x for x, y in choices], prompt='choice: ', lineMode=True)
         action = choices[i][-1]
         action()
-
-
-class Logger(Recorder):
-    def dellast(self):
-        self.opendb()
-        keys = [k for k in self.db]
-        if not keys: return
-
-        key = sorted(keys)[-1]
-        log = self.db[key]
-        i = interact.readstr('%s\nconfirm? [n] ' % log, default='n')
-        if i not in ('y', 'Y'):
-            return
-        self.delete(key)
-
-
-if __name__ == '__main__':
-    logger = Logger('/tmp/testlog')
-    #logger.add('sex', 'Male')
-    #logger.add('age', 34)
-    logger.list()
-    logger.dellast()

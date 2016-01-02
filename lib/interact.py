@@ -111,4 +111,3 @@ def readMany(requests):
         res[key] = v
 
     return res
-

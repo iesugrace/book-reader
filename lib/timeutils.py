@@ -45,4 +45,3 @@ def strtosecond(timestr):
 
     timestr = ' '.join(arr)
     return isostrtosecond(timestr)
-
