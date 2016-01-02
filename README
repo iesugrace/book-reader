@@ -1,0 +1,10 @@
+A book reader which can do the following things:
+    log the reading (time, page, start, end)
+    view the log records
+    preview the plan
+    take notes
+    log errata
+
+See LICENSE for license agreement.
+
+See INSTALL for installation instructions.

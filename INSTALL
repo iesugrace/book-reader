@@ -1,0 +1,15 @@
+This program depends on an appropriate document viewer program,
+please open the file lib/viewer.py for details, you make want
+to modify lib/viewer.py to suite your needs.
+
+
+When the document viewer program is ready, do these:
+
+1. Copy the whole directory somewhere
+    # cp -rv book-reader ~/pda
+
+2. Create a symbolic link in the PATH
+    # ln -sv ~/pda/main /usr/local/bin/pda
+
+3. Run it
+    # pda
