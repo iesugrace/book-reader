@@ -73,8 +73,8 @@ def pickInRange(start=0, end=None, prompt='pick one by number: '):
 def readMany(requests):
     """
     read data from user interactively, data read from the
-    user may be of int and str, default values may be supplied.
-    if 'reader' is not supplied, readint of readstr will be used
+    user may be of int or str, default values may be supplied.
+    if 'reader' is not supplied, readint or readstr will be used
     depends on the 'type'.
     the format of the requests:
     [
