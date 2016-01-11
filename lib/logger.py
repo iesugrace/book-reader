@@ -1,6 +1,6 @@
 from record import Record
 from recorder import Recorder
-from timeutils import isotime
+from timeutils import isotime, strtosecond
 import time
 import interact
 
